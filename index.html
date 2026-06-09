@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>حاجی رضا | وبسایت شخصی</title>
+    <!-- کتابخانه‌های مورد نیاز -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', 'Tahoma', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(145deg, #f8f9fc 0%, #eef2f7 100%);
+            color: #1e2a3a;
+            line-height: 1.7;
+        }
+
+        /* container اصلی */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* هدر */
+        .site-header {
+            background: linear-gradient(135deg, #1e3c2c 0%, #2a4a35 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            border-bottom: 4px solid #eab308;
+        }
+        .site-header h1 {
+            font-size: 2.2rem;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+        }
+        .site-header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        /* دو ستونه: منوی کناری + محتوا */
+        .main-grid {
+            display: flex;
+            flex: 1;
+            max-width: 1400px;
+            margin: 2rem auto;
+            gap: 2rem;
+            padding: 0 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* سایدبار (دسته‌ها) */
+        .sidebar {
+            flex: 1.2;
+            min-width: 220px;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08);
+            padding: 1.5rem 1rem;
+            height: fit-content;
+            position: sticky;
+            top: 1rem;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        .sidebar h3 {
+            font-size: 1.4rem;
+            border-right: 5px solid #eab308;
+            padding-right: 1rem;
+            margin-bottom: 1.5rem;
+            color: #1e3c2c;
+        }
+        .cat-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .cat-btn {
+            width: 100%;
+            text-align: right;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-family: inherit;
+            padding: 0.7rem 1rem;
+            border-radius: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #2d3e50;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cat-btn:hover {
+            background: #eef2f0;
+            transform: translateX(-5px);
+        }
+        .cat-btn.active {
+            background: #1e3c2c;
+            color: white;
+            box-shadow: 0 5px 12px rgba(30,60,44,0.3);
+        }
+        .count-badge {
+            background: #d1d5db;
+            color: #1f2937;
+            border-radius: 40px;
+            padding: 0 8px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-right: auto;
+        }
+        .cat-btn.active .count-badge {
+            background: #eab308;
+            color: #1e3c2c;
+        }
+
+        /* بخش محتوای اصلی */
+        .content-area {
+            flex: 4;
+            min-width: 260px;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.08);
+            padding: 2rem;
+            transition: all 0.2s;
+        }
+        .category-title {
+            font-size: 1.8rem;
+            border-bottom: 3px solid #eab308;
+            display: inline-block;
+            padding-bottom: 6px;
+            margin-bottom: 1.8rem;
+            color: #1e3c2c;
+        }
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .post-card {
+            background: #fefefe;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: 0.2s;
+            border: 1px solid #e9edf2;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.02);
+        }
+        .post-card:hover {
+            border-color: #eab308;
+            box-shadow: 0 12px 20px -12px rgba(0,0,0,0.1);
+        }
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f2c1f;
+            margin-bottom: 0.5rem;
+        }
+        .post-date {
+            font-size: 0.75rem;
+            color: #8b9a8b;
+            margin-bottom: 1rem;
+            display: inline-block;
+            background: #f0f2f5;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+        }
+        .post-body {
+            font-size: 1rem;
+            color: #2c3e2f;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.75;
+        }
+        .empty-msg {
+            text-align: center;
+            padding: 3rem;
+            color: #8faa9b;
+            font-size: 1.2rem;
+            background: #fafcf9;
+            border-radius: 2rem;
+        }
+        footer {
+            text-align: center;
+            padding: 1.8rem;
+            color: #5b6e5a;
+            font-size: 0.8rem;
+            border-top: 1px solid #dee4db;
+            margin-top: 1rem;
+        }
+        .loader {
+            text-align: center;
+            padding: 3rem;
+            color: #1e3c2c;
+        }
+        @media (max-width: 768px) {
+            .main-grid { flex-direction: column; }
+            .sidebar { position: static; width: 100%; }
+            .content-area { padding: 1.5rem; }
+            .post-title { font-size: 1.3rem; }
+        }
+        button {
+            background: none;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <header class="site-header">
+        <h1>📚 پایگاه حاجی رضا</h1>
+        <p>جملات، داستان‌ها، شعرها و اندیشه‌ها</p>
+    </header>
+
+    <div class="main-grid">
+        <aside class="sidebar">
+            <h3>📂 دسته‌بندی‌ها</h3>
+            <ul class="cat-list" id="categories-list">
+                <!-- دسته‌ها با جاوااسکریپت پر می‌شوند -->
+                <li><button class="cat-btn" disabled>در حال بارگیری...</button></li>
+            </ul>
+            <div style="margin-top: 2rem; font-size: 0.7rem; text-align: center; color:#819b8c;">
+                مطالب از فایل <strong>my_content.xlsx</strong> خوانده می‌شود
+            </div>
+        </aside>
+
+        <main class="content-area" id="content-area">
+            <div class="loader">
+                ⏳ در حال خواندن اطلاعات از فایل Excel لطفاً صبر کنید...<br>
+                <span style="font-size:0.8rem;">فایل my_content.xlsx باید در کنار این صفحه باشد.</span>
+            </div>
+        </main>
+    </div>
+    <footer>
+        طراحی شده برای حاجی رضا — بروزرسانی خودکار از Excel ✨
+    </footer>
+</div>
+
+<script>
+    // ---------- لیست دسته‌بندی ثابت (بر اساس درخواست شما) ----------
+    const MAIN_CATEGORIES = [
+        "جملات تفکر آميز",
+        "حکایت های کشتی نوح نبی",
+        "متن های کوتاه",
+        "اشعار سیاسی",
+        "خواب ها و رویا های من",
+        "شعر پدر",
+        "شعر مادر",
+        "اشعار در وصف امامان",
+        "اشعار اربعین",
+        "اشعار طنز",
+        "اشعار عاشورایی",
+        "آيه های برگزيده",
+        "دلنوشته ها",
+        "داستان ها",
+        "جملات کلمات جالب"
+    ];
+
+    let globalData = [];     // ذخیره تمام رکوردها از اکسل
+    let currentCategory = MAIN_CATEGORIES[0];   // پیش‌فرض اولین دسته
+
+    // ارجاع به المان‌ها
+    const categoriesListEl = document.getElementById('categories-list');
+    const contentArea = document.getElementById('content-area');
+
+    // ----- تابع نمایش یک دسته خاص -----
+    function renderPostsByCategory(category) {
+        if (!globalData.length) {
+            contentArea.innerHTML = `<div class="empty-msg">📭 هنوز داده‌ای از اکسل بارگیری نشده است.</div>`;
+            return;
+        }
+        // فیلتر براساس دسته (مقایسه حساس به فاصله و حروف)
+        const filtered = globalData.filter(item => item.category && item.category.trim() === category);
+        
+        if (filtered.length === 0) {
+            contentArea.innerHTML = `
+                <div>
+                    <h2 class="category-title">${category}</h2>
+                    <div class="empty-msg">📭 در این دسته مطلبی وجود ندارد. لطفاً فایل Excel را تکمیل کنید.</div>
+                </div>
+            `;
+            return;
+        }
+
+        // ساختن لیست پست‌ها
+        let postsHtml = `<h2 class="category-title">${category} (${filtered.length})</h2>`;
+        postsHtml += `<div class="items-list">`;
+        filtered.forEach(post => {
+            const title = post.title || 'بدون عنوان';
+            const body = post.body || '';
+            const date = post.date || '';
+            postsHtml += `
+                <div class="post-card">
+                    <div class="post-title">${escapeHtml(title)}</div>
+                    ${date ? `<div class="post-date">📅 ${escapeHtml(date)}</div>` : ''}
+                    <div class="post-body">${escapeHtml(body).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+        });
+        postsHtml += `</div>`;
+        contentArea.innerHTML = postsHtml;
+    }
+
+    // توابع کمکی برای امنیت در برابر XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // به‌روزرسانی منوی دسته‌ها با تعداد هر دسته
+    function updateSidebarCounts() {
+        if (!globalData.length) {
+            // اگر داده نبود، فقط دکمه‌های بدون شماره نشان بده
+            let btnsHtml = '';
+            MAIN_CATEGORIES.forEach(cat => {
+                btnsHtml += `
+                    <li>
+                        <button class="cat-btn" data-category="${cat}">
+                            ${cat} <span class="count-badge">0</span>
+                        </button>
+                    </li>
+                `;
+            });
+            categoriesListEl.innerHTML = btnsHtml;
+            attachCategoryEvents();
+            return;
+        }
+
+        // شمارش تعداد هر دسته
+        let countMap = new Map();
+        MAIN_CATEGORIES.forEach(c => countMap.set(c, 0));
+        globalData.forEach(item => {
+            const cat = item.category;
+            if (cat && countMap.has(cat)) {
+                countMap.set(cat, countMap.get(cat) + 1);
+            }
+        });
+
+        let btnsHtml = '';
+        MAIN_CATEGORIES.forEach(cat => {
+            const count = countMap.get(cat) || 0;
+            const activeClass = (currentCategory === cat) ? 'active' : '';
+            btnsHtml += `
+                <li>
+                    <button class="cat-btn ${activeClass}" data-category="${cat}">
+                        ${cat} <span class="count-badge">${count}</span>
+                    </button>
+                </li>
+            `;
+        });
+        categoriesListEl.innerHTML = btnsHtml;
+        attachCategoryEvents();
+    }
+
+    function attachCategoryEvents() {
+        const btns = document.querySelectorAll('.cat-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const category = btn.getAttribute('data-category');
+                if (!category) return;
+                currentCategory = category;
+                renderPostsByCategory(currentCategory);
+                // به‌روزرسانی کلاس active در منو
+                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    }
+
+    // ----- خواندن فایل اکسل (از آدرس my_content.xlsx) -----
+    async function loadExcelFile() {
+        try {
+            // توجه: فایل باید در همان دایرکتوری و با نام my_content.xlsx باشد
+            const response = await fetch('my_content.xlsx');
+            if (!response.ok) {
+                throw new Error(`فایل پیدا نشد (${response.status}) - لطفاً فایل my_content.xlsx را کنار صفحه قرار دهید.`);
+            }
+            const arrayBuffer = await response.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet);
+            
+            if (!rows || rows.length === 0) {
+                throw new Error('اکسل خالی است. لطفاً حداقل یک رکورد با ستون‌های صحیح وارد کنید.');
+            }
+
+            // تبدیل به داده استاندارد
+            globalData = rows.map(row => {
+                return {
+                    id: row.id || row.ID || '',
+                    category: row.category || row.CATEGORY || '',
+                    title: row.title || row.TITLE || '',
+                    body: row.body || row.BODY || '',
+                    date: row.date || row.DATE || ''
+                };
+            }).filter(item => item.category && MAIN_CATEGORIES.includes(item.category)); // فقط دسته‌های مجاز
+            
+            if (globalData.length === 0) {
+                contentArea.innerHTML = `<div class="empty-msg">⚠️ در فایل Excel هیچ داده‌ای با دسته‌بندی مطابق لیست شما پیدا نشد.<br> لطفاً ستون category را با مقادیر دقیق (مثلاً "اشعار طنز" یا "داستان ها") پر کنید.</div>`;
+                updateSidebarCounts();
+                return;
+            }
+
+            // بروز کردن منو و نمایش اولین دسته
+            updateSidebarCounts();
+            // اگر دسته فعلی معتبر است همان را نمایش بده وگرنه اولین دسته را بگیر
+            if (!MAIN_CATEGORIES.includes(currentCategory)) currentCategory = MAIN_CATEGORIES[0];
+            renderPostsByCategory(currentCategory);
+            // بعد از رندر، کلاس active را دوباره ست کنیم
+            const activeBtn = document.querySelector(`.cat-btn[data-category="${currentCategory}"]`);
+            if (activeBtn) {
+                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                activeBtn.classList.add('active');
+            }
+        } catch (error) {
+            console.error(error);
+            contentArea.innerHTML = `<div class="empty-msg" style="background:#ffe6e6;color:#a12222;">
+                <strong>❌ خطا در بارگذاری فایل Excel</strong><br>
+                ${error.message}<br><br>
+                🔍 راهنما: فایل <strong>my_content.xlsx</strong> باید در کنار همین صفحه HTML قرار گیرد.<br>
+                ستون‌های مورد نیاز: id , category , title , body , date<br>
+                دسته‌ها دقیقاً مطابق لیست باشند.
+            </div>`;
+            updateSidebarCounts(); // نمایش منو با شمارنده صفر
+        }
+    }
+
+    // شروع برنامه
+    loadExcelFile();
+</script>
+</body>
+</html>
